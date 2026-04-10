@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Site Gustavo Amancio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-dark: #3730a3;
+      --brand-light: #eef2ff;
+      --surface: #f8fafc;
+      --card-shadow: 0 4px 24px rgba(79,70,229,.10);
+    }
+
+    body {
+      background: var(--surface);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--brand) 0%, #7c3aed 100%);
+      color: #fff;
+      padding: 3rem 1rem 2.5rem;
+      text-align: center;
+    }
+
+    .hero h1 { font-size: 2rem; font-weight: 700; letter-spacing: -.5px; margin: 0; }
+    .hero p  { opacity: .8; margin-top: .5rem; font-size: 1rem; }
+
+    .main-card {
+      background: #fff;
+      border-radius: 1.25rem;
+      box-shadow: var(--card-shadow);
+      padding: 2rem 1.5rem;
+      margin-top: -2rem;
+    }
+
+    .btn-camera {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 3rem;
+      padding: .85rem 2.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: .3px;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 16px rgba(79,70,229,.35);
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .btn-camera:hover  { background: var(--brand-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.40); color:#fff; }
+    .btn-camera:active { transform: scale(.97); }
+    .btn-camera svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    #webcam-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    #webcam-container canvas {
+      border-radius: 1rem;
+      border: 3px solid var(--brand-light);
+      max-width: 100%;
+      display: block;
+    }
+
+    .section-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    .label-item { margin-bottom: 1rem; }
+    .label-item:last-child { margin-bottom: 0; }
+
+    .label-name {
+      font-size: .85rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: .35rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .label-name .pct {
+      font-weight: 400;
+      color: var(--brand);
+    }
+
+    .progress {
+      height: 12px;
+      border-radius: 1rem;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--brand), #7c3aed);
+      border-radius: 1rem;
+      transition: width .25s ease;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .78rem;
+      font-weight: 600;
+      border-radius: 2rem;
+      padding: .3rem .85rem;
+    }
+
+    .badge-idle   { background: #f3f4f6; color: #6b7280; }
+    .badge-active { background: #ecfdf5; color: #059669; }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-idle   { background: #9ca3af; }
+    .dot-active { background: #10b981; animation: pulse 1.2s infinite; }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; }
+      50%      { opacity:.4; }
+    }
+
+    footer {
+      text-align: center;
+      font-size: .8rem;
+      color: #9ca3af;
+      padding: 1.5rem 0 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>Gustavo Amancio</h1>
+    <p>Reconhecimento de imagem em tempo real com Teachable Machine</p>
+  </div>
+
+  <div class="container" style="max-width:540px;">
+    <div class="main-card">
+
+      <div class="text-center mb-3">
+        <span class="badge-status badge-idle" id="status-badge">
+          <span class="dot dot-idle" id="status-dot"></span>
+          <span id="status-text">Câmera inativa</span>
+        </span>
+      </div>
+
+      <div class="text-center mb-4">
+        <button class="btn-camera" onclick="init()" id="btn-start">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7 16 12 23 17V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          Ativar Câmera
+        </button>
+      </div>
+
+      <div id="webcam-wrapper">
+        <div id="webcam-container"></div>
+      </div>
+
+      <div id="labels-section" style="display:none; margin-top:1.75rem;">
+        <p class="section-title">Correspondência por classe</p>
+        <div id="label-container"></div>
+      </div>
+
+    </div>
+
+    <footer>Powered by TensorFlow.js &amp; Teachable Machine</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/UhJv8baPdr/";
+    let model, webcam, maxPredictions;
+    let bars = [], pcts = [];
+
+    async function init() {
+      const btn = document.getElementById('btn-start');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Carregando...`;
+
+      try {
+        model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+        maxPredictions = model.getTotalClasses();
+
+        const flip = true;
+        webcam = new tmImage.Webcam(280, 280, flip);
+        await webcam.setup();
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        const labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+        bars = []; pcts = [];
+
+        const classNames = [];
+        for (let i = 0; i < maxPredictions; i++) {
+          classNames.push(model.getClassLabels ? model.getClassLabels()[i] : `Classe ${i+1}`);
+        }
+
+        classNames.forEach((name, i) => {
+          const item = document.createElement("div");
+          item.className = "label-item";
+
+          const nameRow = document.createElement("div");
+          nameRow.className = "label-name";
+          nameRow.innerHTML = `<span>${name}</span><span class="pct" id="pct-${i}">0%</span>`;
+
+          const progress = document.createElement("div");
+          progress.className = "progress";
+
+          const bar = document.createElement("div");
+          bar.className = "progress-bar";
+          bar.style.width = "0%";
+
+          progress.appendChild(bar);
+          item.appendChild(nameRow);
+          item.appendChild(progress);
+          labelContainer.appendChild(item);
+
+          bars.push(bar);
+          pcts.push(document.getElementById(`pct-${i}`));
+        });
+
+        document.getElementById("labels-section").style.display = "block";
+
+        const badge   = document.getElementById('status-badge');
+        const dot     = document.getElementById('status-dot');
+        const stText  = document.getElementById('status-text');
+        badge.className  = "badge-status badge-active";
+        dot.className    = "dot dot-active";
+        stText.textContent = "Câmera ativa";
+
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               style="width:20px;height:20px">
+            <path d="M23 7 16 12 23 17V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          Em execução`;
+        btn.style.background = "#059669";
+        btn.style.boxShadow  = "0 4px 16px rgba(5,150,105,.35)";
+        btn.disabled = false;
+
+      } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = `⚠️ Tente novamente`;
+        btn.style.background = "#dc2626";
+      }
+    }
+
+    async function loop() {
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      for (let i = 0; i < maxPredictions; i++) {
+        const prob = prediction[i].probability;
+        const pctVal = Math.round(prob * 100);
+        bars[i].style.width = pctVal + "%";
+        pcts[i].textContent = pctVal + "%";
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
